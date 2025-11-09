@@ -1,0 +1,79 @@
+# Matrix Build Workflow YAML
+
+Copy this entire content and save it as `.github/workflows/matrix-build.yml` in your repository:
+
+```yaml
+name: Multi-Platform Matrix Build
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  matrix-build:
+    name: Build on ${{ matrix.os }} - Node ${{ matrix.node-version }}
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node-version: [18, 20]
+        include:
+          - os: ubuntu-latest
+            node-version: 16
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: matrix-b732f65
+        run: |
+          echo "Building for OS: ${{ matrix.os }}"
+          echo "Node version: ${{ matrix.node-version }}"
+          echo "Runner: ${{ runner.os }}"
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      
+      - name: Display system information
+        run: |
+          echo "Operating System: ${{ matrix.os }}"
+          echo "Node Version: ${{ matrix.node-version }}"
+          node --version
+          npm --version
+        shell: bash
+      
+      - name: Create build directory
+        run: mkdir -p build
+        shell: bash
+      
+      - name: Generate build artifact
+        run: |
+          echo "Build Configuration" > build/output.txt
+          echo "===================" >> build/output.txt
+          echo "OS: ${{ matrix.os }}" >> build/output.txt
+          echo "Node Version: ${{ matrix.node-version }}" >> build/output.txt
+          echo "Build Time: $(date)" >> build/output.txt
+          echo "Runner: ${{ runner.os }}" >> build/output.txt
+          echo "Job ID: ${{ github.job }}" >> build/output.txt
+          echo "Run ID: ${{ github.run_id }}" >> build/output.txt
+          echo "===================" >> build/output.txt
+          echo "" >> build/output.txt
+          echo "Build completed successfully!" >> build/output.txt
+        shell: bash
+      
+      - name: Create JSON metadata
+        run: |
+          cat > build/metadata.json << EOF
+          {
+            "os": "${{ matrix.os }}",
+            "node_version": "${{ matrix.node-version }}",
+            "runner": "${{ runner.os }}",
+            "build_time": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "job_id": "${{ github.job }}",
+            "run_id": "${{ github.run_id }}
